@@ -1,0 +1,153 @@
+{% extends 'base.html.twig' %}
+{% block body %}
+<h3>AUTH</h3>
+<form method="post" name="authForm">
+    username<br>
+    <input type="text" id="email" name="email" value="email@email.ru"><br>
+    password<br>
+    <input type="text" id="password" name="password" value="password"/><br>
+    <input type="submit" name="submit" id="login" value="Submit"/><br>
+</form>
+<hr>
+<h3>REQUEST</h3>
+<form>
+    method<br>
+    <input type="text" id="method" name="method" value="" placeholder="GET"><br>
+    url<br>
+    <input type="text" id="url" name="url" value="" placeholder="users"><br>
+    <input type="button" name="button" onclick="forAPP()" value="Submit"/><br>
+</form>
+<hr>
+<h3>REQUEST-file</h3>
+<form id="formElem" enctype="multipart/form-data">
+    method<br>
+    <input type="text" id="methodf" name="method" value="POST" placeholder="POST"><br>
+    url<br>
+    <input type="text" id="urlf" name="url" value="files" placeholder="files"><br>
+    <input type="file" id="file" name="files[]" multiple="true"><br>
+    <input type="button" name="button" onclick="forAPPfile()" value="Submit"/><br>
+</form>
+<hr>
+<div id="aus"></div>
+<script>
+var res = '';
+document.getElementById('login').addEventListener('click', function (e) {
+    res = '';
+    aus.innerHTML = '';
+    e.preventDefault();
+    let authForm = document.forms['authForm'];
+    let email = authForm.elements['email'].value;
+    let password = authForm.elements['password'].value;
+
+    let eingang = JSON.stringify({
+        email: email,
+        password: password,
+    });
+
+    let xhr = new XMLHttpRequest();
+
+    xhr.open('POST', '/api/login?', false);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.onreadystatechange = function () {
+        res = JSON.parse(xhr.response);
+    }
+    xhr.send(eingang);
+    console.log(res);
+});
+
+function forAPP() {
+    res = '';
+    aus.innerHTML = '';
+    let xhr = new XMLHttpRequest();
+    xhr.open(method.value, '/api/' + url.value, false);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.onreadystatechange = function () {
+
+        if(xhr.status == 200 || xhr.status == 201) {
+            if(isJson(xhr.response)) {
+                r = JSON.parse(xhr.response);
+                if(r.entities) {
+                    res = r.entities
+                }
+                else {
+                    res = r
+                }
+                aus.innerHTML = '<font color="#006600">Смотри консоль</font> ';
+            }
+            else {
+                res = xhr;
+                aus.innerHTML = xhr.response;
+            }
+        }
+        else if(xhr.status == 404) {
+            res = 'status:404 Страница не найдена';
+            aus.innerHTML = '<font color="#FF6600">' + res + '</font> ';
+        }
+        else {
+            if(isJson(xhr.response)) {
+                res = JSON.parse(xhr.response);
+                aus.innerHTML = '<font color="#FF0000">Смотри консоль</font><br><b>title:</b> ' + res.title + '<br><b>status:</b> ' + res.status + '<br><b>detail:</b> ' + res.detail;
+            }
+            else {
+                res = xhr;
+                aus.innerHTML = xhr.response;
+            }
+        }
+    }
+    xhr.send(null);
+    console.log(res);
+}
+
+function forAPPfile() {
+    res = '';
+    aus.innerHTML = '';
+    let xhr = new XMLHttpRequest();
+    xhr.open(methodf.value, '/api/' + urlf.value, false);
+    var formData = new FormData(formElem);
+    xhr.onreadystatechange = function () {
+        if(xhr.status == 200 || xhr.status == 201) {
+            if(isJson(xhr.response)) {
+                r = JSON.parse(xhr.response);
+                if(r.entities) {
+                    res = r.entities
+                }
+                else {
+                    res = r
+                }
+                aus.innerHTML = '<font color="#006600">Смотри консоль</font> ';
+            }
+            else {
+                res = xhr;
+                aus.innerHTML = xhr.response;
+            }
+            
+        }
+        else if(xhr.status == 404) {
+            res = 'status:404 Страница не найдена';
+            aus.innerHTML = '<font color="#FF6600">' + res + '</font> ';
+        }
+        else {
+            if(isJson(xhr.response)) {
+                res = JSON.parse(xhr.response);
+                aus.innerHTML = '<font color="#FF0000">Смотри консоль</font><br><b>title:</b> ' + res.title + '<br><b>status:</b> ' + res.status + '<br><b>detail:</b> ' + res.detail;
+            }
+            else {
+                res = xhr;
+                aus.innerHTML = xhr.response;
+            }
+        }
+    }
+    xhr.send(formData);
+    console.log(res);
+}
+
+function isJson(str) {
+    try {
+        JSON.parse(str);
+    } catch (e) {
+        return false;
+    }
+    return true;
+}
+</script>
+{% endblock %}
