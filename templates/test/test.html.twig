@@ -3,18 +3,27 @@
 <h3>AUTH</h3>
 <form method="post" name="authForm">
     username<br>
-    <input type="text" id="email" name="email" value="email@email.ru"><br>
+    <input type="text" id="email" name="email" value="developer@concedra.de"><br>
     password<br>
-    <input type="text" id="password" name="password" value="password"/><br>
+    <input type="text" id="password" name="password" value="123456"/><br>
     <input type="submit" name="submit" id="login" value="Submit"/><br>
 </form>
 <hr>
 <h3>REQUEST</h3>
-<form>
+<form name="requestForm">
     method<br>
     <input type="text" id="method" name="method" value="" placeholder="GET"><br>
     url<br>
     <input type="text" id="url" name="url" value="" placeholder="users"><br>
+    если надо отправить значения, то пиши это здесь<br>
+    пример предполагаемых инпутов {"name":"value"}<br>
+    <textarea name="inhalt" style="width: 330px; height: 100px;">{
+    "type":"png",
+    "name":"NewName",
+    "beginning":"2022-12-06T01:22:26+00:00",
+    "ending":"2022-12-06T01:22:26+00:00",
+    "period":"2022-12-06T01:22:26+00:00"
+}</textarea><br>
     <input type="button" name="button" onclick="forAPP()" value="Submit"/><br>
 </form>
 <hr>
@@ -46,16 +55,59 @@ document.getElementById('login').addEventListener('click', function (e) {
 
     let xhr = new XMLHttpRequest();
 
-    xhr.open('POST', '/api/login?', false);
+    // первая аутентификация по емейлу и логину
+    xhr.open('POST', '/api/login', false);
     xhr.setRequestHeader('Content-Type', 'application/json');
     xhr.onreadystatechange = function () {
-        res = JSON.parse(xhr.response);
+        if(xhr.status == 200) {
+            res = JSON.parse(xhr.response)
+        }
+        else {
+            aus.innerHTML = '<font color="#FF0000">Ошибка соединения см. консоль</font> ';
+            console.log(xhr);
+        }
     }
     xhr.send(eingang);
-    console.log(res);
+
+    // запрос в TestController, чтобы получить код аутентификации
+    let xhr2 = new XMLHttpRequest();
+    let res2;
+    let auth_code;
+
+    xhr2.open('POST', '/two_factor/' + email, false);
+    xhr2.setRequestHeader('Content-Type', 'application/json');
+    xhr2.onreadystatechange = function () {
+        if(xhr2.status == 200) {
+            auth_code = JSON.parse(xhr2.response).auth_code;
+        }
+        else {
+            aus.innerHTML = '<font color="#FF0000">Ошибка соединения см. консоль</font> ';
+        }
+    }
+    xhr2.send();
+
+    let eingang2 = JSON.stringify({
+        authCode: auth_code
+    });
+
+    // аутентифицируемся с кодом аутентификации
+    let autt;
+
+    let xhr2fa = new XMLHttpRequest();
+    xhr2fa.open('POST', '/api/2fa', false);
+    xhr2fa.setRequestHeader('Content-Type', 'application/json');
+    xhr2fa.onreadystatechange = function () {
+        if(xhr2fa.status ==200) {
+            aus.innerHTML = '<font color="#006600">Вы авторизованы</font> ';
+            autt = xhr2fa.response
+        }
+    }
+    xhr2fa.send(eingang2);
+    // console.log(autt)
 });
 
 function forAPP() {
+    let inhalt = requestForm.elements['inhalt'].value;
     res = '';
     aus.innerHTML = '';
     let xhr = new XMLHttpRequest();
@@ -94,7 +146,7 @@ function forAPP() {
             }
         }
     }
-    xhr.send(null);
+    xhr.send(inhalt);
     console.log(res);
 }
 
