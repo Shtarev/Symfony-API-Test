@@ -16,7 +16,7 @@ class TestController extends AbstractController
         return $this->render('test/test.html.twig', []);
     }
 
-    // получаем код двухфакторной аутентификации
+    // получаем из базы данных код двухфакторной аутентификации
     #[Route('/two_factor/{email}', name: 'two_factor2')]
     public function two_factor(UserRepository $usersRepository, $email)
     {
