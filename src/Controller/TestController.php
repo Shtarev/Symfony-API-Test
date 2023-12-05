@@ -5,6 +5,8 @@ namespace App\Controller;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use App\Repository\UserRepository;
+
 
 class TestController extends AbstractController
 {
@@ -12,5 +14,14 @@ class TestController extends AbstractController
     public function test(): Response
     {
         return $this->render('test/test.html.twig', []);
+    }
+
+    // получаем код двухфакторной аутентификации
+    #[Route('/two_factor/{email}', name: 'two_factor2')]
+    public function two_factor(UserRepository $usersRepository, $email)
+    {
+        $usersObject = $usersRepository;
+        $auth_code = $usersObject->findByEmail($email)[0]->getEmailAuthCode();
+        return $this->json(['auth_code' => $auth_code]);
     }
 }
