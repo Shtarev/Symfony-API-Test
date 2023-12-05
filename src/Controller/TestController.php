@@ -20,8 +20,7 @@ class TestController extends AbstractController
     #[Route('/two_factor/{email}', name: 'two_factor2')]
     public function two_factor(UserRepository $usersRepository, $email)
     {
-        $usersObject = $usersRepository;
-        $auth_code = $usersObject->findByEmail($email)[0]->getEmailAuthCode();
+        $auth_code = $usersRepository->findByEmail($email)[0]->getEmailAuthCode();
         return $this->json(['auth_code' => $auth_code]);
     }
 }
